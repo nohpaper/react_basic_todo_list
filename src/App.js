@@ -4,7 +4,10 @@ import {useEffect, useState} from "react";
 
 /*
 * TODO :
-*   1. localstorage 화
+*   1. localstorage versioning
+*     1-1. remove btn click event => this localstorage data remove check
+*     1-2. useEffect dependencies "data" input => loop error check
+*   2. file code cleaning
 *
 * */
 //styled compontents start
