@@ -1,12 +1,10 @@
 import styled from 'styled-components';
 import './App.css';
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 /*
 * TODO :
-*   1. ViewWrap 안에 있는 if return 태그 하나로
-*   2. AddWrap 안에 있는 input에 입력, submit 클릭 시 useState 화
-*   3. localstorage 화
+*   1. localstorage 화
 *
 * */
 //styled compontents start
@@ -51,10 +49,11 @@ const AddWrap = styled.div`
 
 
 function App() {
+  const [inputText, setInputText] = useState();
   const category = ["All", "Active", "Completed"];
   const [show, setShow] = useState("All");
   const [data, setData] = useState([
-    {
+    /*{
       checked:false,
       content:"강의 가기",
       delete:false,
@@ -68,8 +67,30 @@ function App() {
       checked:false,
       content:"청소하기",
       delete:false,
-    }
+    }*/
   ]);
+  //const storage = [];
+  //localStorage.setItem('data', JSON.stringify(data));
+  //console.log(JSON.stringify(data));
+
+  //최초 접속 시 데이터 0개일 것
+  //접속 시 데이터 확인 후
+  useEffect(() => {
+    let storage = localStorage.getItem('data');
+
+    if(storage === "[]" || storage === null) {
+      //값이 없을 경우
+      console.log("null")
+
+      //storage = [];
+    }else {
+      //값이 있을 경우
+      storage = JSON.parse(storage);
+      setData([...storage])
+    }
+    localStorage.setItem('data', JSON.stringify(data));
+  }, [data]);
+
   console.log(data);
 
   return (
@@ -78,20 +99,19 @@ function App() {
         <form action="">
           <TodoWrap>
             <ViewTypeWrap>
-              <button type="button" className={show === category[0] && "active"} onClick={()=>{
+              <button type="button" className={show === category[0] ? "active" : null} onClick={()=>{
                 setShow(category[0]);
               }}>{category[0]}</button>
-              <button type="button" className={show === category[1] && "active"} onClick={()=>{
+              <button type="button" className={show === category[1] ? "active" : null} onClick={()=>{
                 setShow(category[1]);
               }}>{category[1]}</button>
-              <button type="button" className={show === category[2] && "active"} onClick={()=>{
+              <button type="button" className={show === category[2] ? "active" : null} onClick={()=>{
                 setShow(category[2]);
               }}>{category[2]}</button>
             </ViewTypeWrap>
             <ViewWrap>
               {
                 data.map(function(element, index){
-
                   if(element.delete){
                     //true
                     return null;
@@ -99,50 +119,12 @@ function App() {
                     //false
                     if(!element.checked && show === category[1]){
                       //Active
-                      console.log(element);
-
-                      return <InputItem>
-                        <input type="checkbox" id={`item${index}`} checked={element.checked} onChange={()=>{
-                          const copy = [...data];
-                          copy[index].checked = !copy[index].checked;
-                          setData(copy)
-                        }}/>
-                        <label htmlFor={`item${index}`}>{element.content}</label>
-                        <button type="button" onClick={()=>{
-                          const copy = [...data];
-                          copy[index].delete = true;
-                          setData(copy)
-                        }}>X</button>
-                      </InputItem>
+                      return <InputItems element={element} index={index} data={data} setData={setData}/>
                     }else if(element.checked && show === category[2]){
                       //Completed
-                      return <InputItem>
-                        <input type="checkbox" id={`item${index}`} checked={element.checked} onChange={()=>{
-                          const copy = [...data];
-                          copy[index].checked = !copy[index].checked;
-                          setData(copy)
-                        }}/>
-                        <label htmlFor={`item${index}`}>{element.content}</label>
-                        <button type="button" onClick={()=>{
-                          const copy = [...data];
-                          copy[index].delete = true;
-                          setData(copy)
-                        }}>X</button>
-                      </InputItem>
+                      return <InputItems element={element} index={index} data={data} setData={setData}/>
                     }else if(show === category[0]) {
-                      return <InputItem>
-                        <input type="checkbox" id={`item${index}`} checked={element.checked} onChange={()=>{
-                          const copy = [...data];
-                          copy[index].checked = !copy[index].checked;
-                          setData(copy)
-                        }}/>
-                        <label htmlFor={`item${index}`}>{element.content}</label>
-                        <button type="button" onClick={()=>{
-                          const copy = [...data];
-                          copy[index].delete = true;
-                          setData(copy)
-                        }}>X</button>
-                      </InputItem>
+                      return <InputItems element={element} index={index} data={data} setData={setData}/>
                     }else {
                       return null;
                     }
@@ -151,8 +133,18 @@ function App() {
               }
             </ViewWrap>
             <AddWrap>
-              <input type="text" placeholder="입력란..."></input>
-              <button type="submit">Add</button>
+              <input type="text" placeholder="입력란..." value={inputText || ""} onChange={(event)=>{setInputText(event.target.value)}}></input>
+              <button type="submit" onClick={(event)=>{
+                event.preventDefault();
+
+                setInputText("");
+                setData((prev)=>([
+                  ...prev, {
+                    checked:false,
+                    content:inputText,
+                    delete:false,
+                }]))
+              }}>Add</button>
             </AddWrap>
           </TodoWrap>
         </form>
@@ -161,4 +153,20 @@ function App() {
   );
 }
 
+function InputItems(props) {
+  return <InputItem>
+    <input type="checkbox" id={`item${props.index}`} checked={props.element.checked} onChange={()=>{
+      const copy = [...props.data];
+      copy[props.index].checked = !copy[props.index].checked;
+      props.setData(copy)
+    }}/>
+    <label htmlFor={`item${props.index}`}>{props.element.content}</label>
+    <button type="button" onClick={()=>{
+      const copy = [...props.data];
+      copy[props.index].delete = true;
+      props.setData(copy)
+
+    }}>X</button>
+  </InputItem>
+}
 export default App;
